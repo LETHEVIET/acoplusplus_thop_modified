@@ -49,7 +49,7 @@
                   Belgium
 
  ***************************************************************************/
-
+// #include "thop.h"
 
 #define PROG_ID_STR      "\nACO algorithms for the TSP, v1.03\n"
 #define CALL_SYNTAX_STR  "call syntax:  acotsp <param-list>\n"

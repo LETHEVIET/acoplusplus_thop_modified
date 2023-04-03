@@ -56,6 +56,14 @@ extern long int nn_ls;
 
 extern long int dlb_flag; 
 
+void rotate_tour( long int *tour, long int n );
+
+long int** compute_local_distances( long int *tour, long int n );
+
+long int** compute_local_nn_lists( long int **distance, long int n );
+
+long int * generate_random_permutation( long int n );
+
 void two_opt_first( long int *tour, long int t_size );
 
 void two_h_opt_first( long int *tour, long int t_size );

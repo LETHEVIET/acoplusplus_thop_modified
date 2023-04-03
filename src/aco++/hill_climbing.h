@@ -1,0 +1,1 @@
+void first_improvement_hill_climbing(ant_struct *ant);

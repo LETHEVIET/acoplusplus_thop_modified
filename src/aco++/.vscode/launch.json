@@ -1,0 +1,58 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "(gdb) Launch",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/acothop",
+            "args": [
+                "--mmas",
+                "--tries",
+                "1",
+                "--seed",
+                "269070",
+                "--time",
+                "5.0",
+                "--inputfile",
+                "../../instances/eil51-thop/eil51_01_bsc_01_01.thop",
+                "--outputfile",
+                "../../solutions/aco++/eil51-thop/eil51_01_bsc_01_01_01.thop.sol",
+                "--ants",
+                "500",
+                "--alpha",
+                "1.08",
+                "--beta",
+                "5.43",
+                "--rho",
+                "0.46",
+                "--ptries",
+                "3",
+                "--localsearch",
+                "1",
+                "--log"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${fileDirname}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        }
+
+    ]
+}

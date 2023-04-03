@@ -65,6 +65,7 @@
 #include "thop.h"
 #include "timer.h"
 #include "ls.h"
+#include "hill_climbing.h"
 
 long int termination_condition( void )
 /*    
@@ -166,6 +167,16 @@ void local_search( void )
         }
         ant[k].fitness = compute_fitness( ant[k].tour, ant[k].visited, ant[k].tour_size, ant[k].packing_plan ); 
         if (termination_condition()) return;
+    }
+}
+
+void hill_climbing( void ){
+    long int k;
+
+    printf("apply local search to all ants\n");
+
+    for ( k = 0 ; k < n_ants ; k++ ) {
+        first_improvement_hill_climbing(&ant[k]);
     }
 }
 
@@ -500,7 +511,8 @@ int main(int argc, char *argv[]) {
                 for ( k = 0 ; k < n_ants ; k++ ) {
                     copy_from_to( &ant[k], &prev_ls_ant[k] );
                 }
-                local_search();
+                // local_search();
+                hill_climbing();
                 for ( k = 0 ; k < n_ants ; k++ ) {                
                     if (ant[k].fitness > prev_ls_ant[k].fitness ) {
                         copy_from_to( &prev_ls_ant[k], &ant[k] );
