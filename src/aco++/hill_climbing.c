@@ -73,6 +73,79 @@ long int compute_objective_value(long int *t, long int t_size, char*p){
     long int prev_city, curr_city;
     long int total_weight = 0;
     int violate_max_time;
+    int violate_capacity;
+    long int _total_weight, _total_profit;
+    double _total_time;
+
+    const double v = ( instance.max_speed - instance.min_speed ) / instance.capacity_of_knapsack;
+    
+    violate_capacity = FALSE;
+    int count = 0;
+    
+    for (int j= 0 ; j < instance.m ; j++ ) {
+        if (p[j] == 0) continue;
+        count ++;
+        // printf("%d %d %d \n", j, instance.itemptr[j].profit, instance.itemptr[j].weight);
+        if ( total_weight + instance.itemptr[j].weight > instance.capacity_of_knapsack ){
+            violate_capacity = TRUE;
+            // printf("violate capacity\n");
+            goto violate_constraint;
+        }
+
+        total_weight += instance.itemptr[j].weight;
+
+        profit_accumulated[instance.itemptr[j].id_city] += instance.itemptr[j].profit;
+        weight_accumulated[instance.itemptr[j].id_city] += instance.itemptr[j].weight; 
+    }
+
+    // printf("number of items were packed: %d, total weight: %d, capacity: %d \n", count, total_weight, instance.capacity_of_knapsack);
+
+    violate_max_time = FALSE;
+    _total_time = _total_weight, _total_profit = 0;
+    prev_city = 0;
+    
+
+    for (int i = 1 ; i < t_size; i++ ) {
+        curr_city = t[i];
+
+        if ( weight_accumulated[curr_city] == 0 && curr_city != instance.n - 2) continue;
+        // printf("%d %d %d \n", i, profit_accumulated[curr_city], weight_accumulated[curr_city]);
+
+        _total_time += instance.distance[prev_city][curr_city] / ( instance.max_speed - v * _total_weight );    
+        
+        if ( _total_time - EPSILON > instance.max_time ) {
+            violate_max_time = TRUE; 
+            // printf("violate max time %f/%f\n", _total_time, instance.max_time);
+            goto violate_constraint;
+        }                
+        _total_weight += weight_accumulated[curr_city];
+        _total_profit += profit_accumulated[curr_city];
+        prev_city = curr_city;
+    }
+
+    free(profit_accumulated);
+    free(weight_accumulated);
+    
+    return instance.UB + 1 -_total_profit;
+
+    violate_constraint:
+    free(profit_accumulated);
+    free(weight_accumulated);
+    return INFTY;
+}
+
+
+long int compute_profit(long int *t, long int t_size, char*p){
+    long int *profit_accumulated = (long int *) malloc( instance.n * sizeof(long int));
+    long int *weight_accumulated = (long int *) malloc( instance.n * sizeof(long int));
+
+    for (int i = 0 ; i < instance.n ; i++ ) {
+        profit_accumulated[i] = weight_accumulated[i] = 0;
+    }
+
+    long int prev_city, curr_city;
+    long int total_weight = 0;
+    int violate_max_time;
     long int _total_time, _total_weight, _total_profit;
 
     const double v = ( instance.max_speed - instance.min_speed ) / instance.capacity_of_knapsack;
@@ -113,7 +186,7 @@ long int compute_objective_value(long int *t, long int t_size, char*p){
 
     free(profit_accumulated);
     free(weight_accumulated);
-    // printf("%d %d \n", _total_profit, _total_weight);
+    
     return _total_profit;
 }
 
@@ -135,10 +208,10 @@ void first_improvement_insertion (long int *t, long int t_size, char*p, long int
             }
 
             z_o = compute_objective_value(t_o, t_size, p);
-            if ((*fitness ) < z_o){
+            if ((*fitness ) > z_o){
                 (*improvement_flag) = TRUE;
                 (*fitness ) = z_o;
-                printf("insertion improved!!\n");
+                // printf("insertion improved!!\n");
                 // t_oo = t_o;
                 memcpy(t_oo, t_o, (instance.n + 1) * sizeof(long int));
                 memcpy(t, t_oo, (instance.n + 1) * sizeof(long int));
@@ -167,13 +240,13 @@ void first_improvement_bit_flip (long int *t, long int t_size, char*p, long int 
 
         z_hat = compute_objective_value(t, t_size, t_p);
         // printf("%d \n", z_hat);
-        if (z_hat > *fitness){
+        if (z_hat < *fitness){
             (*improvement_flag) = TRUE;
             (*fitness) = z_hat;
             z = z_hat;
             // p = t_p;
             memcpy(p, t_p, instance.m* sizeof(char));
-            printf("bitflip improved!!\n");
+            // printf("bitflip improved!!\n");
             free(t_p);
             return;
         }
@@ -203,14 +276,14 @@ void first_improvement_exchange (long int *t, long int t_size, char*p, long int 
 
             z_hat = compute_objective_value(t, t_size, t_p);
 
-            if (z_hat > z){
+            if (z_hat < z){
                 (*improvement_flag) = TRUE;
                 (*fitness ) = z_hat;
                 z = z_hat;
                 // p = t_p;
                 memcpy(p, t_p, instance.m* sizeof(char));
 
-                printf("exchange improved!!\n");
+                // printf("exchange improved!!\n");
                 free(t_p);
                 return;
             }
@@ -412,7 +485,7 @@ void first_improvement_hill_climbing(ant_struct *ant)
     
     long int improvement_flag = TRUE, n_improves = 0;
 
-    while ( improvement_flag ) {
+    while ( improvement_flag == FALSE ) {
 
         improvement_flag = FALSE;
         // first_improvement_two_opt(tour, t_size, distance, nn_list, &improvement_flag);
@@ -428,9 +501,10 @@ void first_improvement_hill_climbing(ant_struct *ant)
         first_improvement_exchange(tour, t_size, packing_plan, &fitness, visited, &improvement_flag);
         // printf("passed\n");
 
+        long int profit = compute_profit(tour, t_size, packing_plan);
         if ( improvement_flag ) {
             n_improves++;
-            printf("fitness: %d \n", fitness);
+            printf("fitness: %d, profit: %d, upperbound: %d \n", fitness, profit, instance.UB);
         }
 
         // exit(1);
