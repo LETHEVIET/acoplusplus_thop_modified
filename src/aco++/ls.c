@@ -54,6 +54,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <limits.h>
+#include <math.h>
 
 #include "ls.h"
 #include "inout.h"
@@ -106,21 +107,75 @@ long int** compute_local_distances( long int *tour, long int n )
 {
     long int     i, j;
     long int     **matrix;
+    double       **double_matrix;
+    double       t_ij, v_ij, d_ij, r,
+        min_value=INFINITY,
+        max_value=-INFINITY;
+    const long int new_max= 10000,
+        fake_edge= new_max * n;
 
+    // Initialize
     if((matrix = (long int **) malloc(sizeof(long int) * n * n + sizeof(long int *) * n)) == NULL){
+        fprintf(stderr,"Out of memory, exit.");
+        exit(1);
+    }
+    if((double_matrix = (double **) malloc(sizeof(double) * n * n + sizeof(double *) * n)) == NULL){
         fprintf(stderr,"Out of memory, exit.");
         exit(1);
     }
     for ( i = 0 ; i < n ; i++ ) {
         matrix[i] = (long int *)(matrix + n) + i * n;
+        double_matrix[i] = (double *)(double_matrix + n) + i * n;
     }
 
+    // Calculate
     for ( i = 0 ; i < n ; i++ ) {
         for ( j = 0 ; j < n ; j++ ) { 
-            matrix[i][j] = instance.distance[tour[i]][tour[j]];
+            if (tour[i] == tour[j]) {
+                matrix[i][j] = 0;
+                continue;
+            }
+            if (tour[j] == instance.n - 1 || tour[i] == instance.n - 1) {
+                if (tour[i] == 0 || tour[i] == instance.n - 2 \
+                    || tour[j] == 0 || tour[j] == instance.n - 2) {
+                    matrix[i][j] = 0;
+                } else {
+                    matrix[i][j] = fake_edge;
+                }
+                continue;
+            }
+
+            d_ij = instance.distance[tour[i]][tour[j]];
+            v_ij = instance.max_speed - instance.w_inventoryptr[i] * (instance.max_speed - instance.min_speed) / instance.capacity_of_knapsack;
+            t_ij = d_ij / v_ij;
+            // double_matrix[i][j] = - instance.p_inventoryptr[j] / t_ij;
+            // double_matrix[i][j] = t_ij;
+            // double_matrix[i][j] = - instance.p_inventoryptr[i] / t_ij;
+            double_matrix[i][j] = 123;
+
+            if ( double_matrix[i][j] > max_value ) max_value = double_matrix[i][j];
+            if ( double_matrix[i][j] < min_value ) min_value = double_matrix[i][j];
         }
     }
 
+    // Normalize
+    r = 1.0 * new_max / (max_value - min_value + 10);
+    for ( i = 0 ; i < n ; i++ ) {
+        for ( j = 0 ; j < n ; j++ ) { 
+            if (tour[j] == instance.n - 1 \
+                || tour[i] == instance.n - 1 \
+                || tour[i] == tour[j]) {
+                // printf("%d ", matrix[i][j]);
+                continue;
+            }
+
+            matrix[i][j] = (long int)((double_matrix[i][j] - min_value + 10) * r);
+            // printf("%d ", matrix[i][j]);
+        }
+        // printf("\n\n");
+    }
+
+    free(double_matrix);
     return matrix;
 }
 
@@ -268,6 +323,7 @@ void two_opt_first( long int *tour, long int t_size )
             pos_c1 = pos[c1];
             s_c1 = tour[pos_c1+1];
             radius = distance[c1][s_c1];
+            // printf("%d\n", radius);
 
             /* First search for c1's nearest neighbours, use successor of c1 */
             for ( h = 0 ; h < local_nn_ls ; h++ ) {

@@ -85,6 +85,8 @@ struct problem {
     struct item   *itemptr;               /* array of structs containing item data */
     long int      **distance;             /* distance matrix: distance[i][j] gives distance between city i und j */
     long int      **nn_list;              /* nearest neighbor list; contains for each node i a sorted list of n_near nearest neighbors */
+    long int      *w_inventoryptr;
+    long int      *p_inventoryptr;
     long int      UB;                     /* objective value of the optimal solution of the fractional knapsack problem */
 };
 

@@ -316,12 +316,25 @@ void read_thop_instance(const char *input_file_name, struct point **nodeptr, str
 
     fgets(buf, LINE_BUF_LEN, input_file); /* ITEMS SECTION    (INDEX, PROFIT, WEIGHT, ASSIGNED NODE NUMBER): */
 
+
+    // if ((w_inventoryptr = (long int *) malloc( instance.n  * sizeof(long int) )) == NULL) exit(EXIT_FAILURE);
+    // if ((p_inventoryptr = (long int *) malloc( instance.n  * sizeof(long int) )) == NULL) exit(EXIT_FAILURE);
+    instance.w_inventoryptr = (long int *) malloc( instance.n  * sizeof(long int)); 
+    instance.p_inventoryptr = (long int *) malloc( instance.n  * sizeof(long int));
+
+    for (i = 0; i <instance.n-1; i++){
+        instance.w_inventoryptr[i] = 0;
+        instance.p_inventoryptr[i] = 0;
+    }
+
     if (( * itemptr = (item *) malloc(sizeof(struct item) * instance.m)) == NULL)
         exit(EXIT_FAILURE);
     else {
         for (i = 0; i < instance.m; i++) {
             fscanf(input_file, "%ld %ld %ld %ld\n", &j, &(*itemptr)[i].profit, &(*itemptr)[i].weight, &(*itemptr)[i].id_city);
             (*itemptr)[i].id_city -= 1;
+            instance.w_inventoryptr[(*itemptr)[i].id_city] += (*itemptr)[i].weight;
+            instance.p_inventoryptr[(*itemptr)[i].id_city] += (*itemptr)[i].profit;
         }
     }
     
