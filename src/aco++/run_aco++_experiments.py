@@ -187,7 +187,7 @@ def imap_unordered_bar(func, args, total, n_processes=2):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--aaco_nc", action="store_true")
+    parser.add_argument("--aaco_nc", required=True, action="store_true")
     parser.add_argument("--sol_dir", required=True, type=str)
     args = parser.parse_args()
 
@@ -196,9 +196,9 @@ if __name__ == "__main__":
     sol_dir = args.sol_dir
 
     tsp_base = [
-        "eil51",
-        "pr107",
-        "a280",
+        # "eil51",
+        # "pr107",
+        # "a280",
         "dsj1000",
     ]
     number_of_items_per_city = [
