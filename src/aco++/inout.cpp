@@ -230,6 +230,7 @@ void init_try(long int ntry)
 
     TRACE(printf("INITIALIZE TRIAL\n"););
 
+    printf("iteration %ld\tseed %ld\t", ntry, seed);
     start_timers();
     time_used = elapsed_time(VIRTUAL);
     time_passed = time_used;
@@ -303,6 +304,9 @@ void exit_try(long int ntry)
         fprintf(log_file, "end try %li \n", ntry);
     if (log_tries_file)
         fprintf(log_tries_file, "end try %li \n", ntry);
+
+    
+    printf("best in try %ld\n", instance.UB + 1 - best_so_far_ant->fitness);
 }
 
 void read_thop_instance(const char *input_file_name, struct point **nodeptr, struct item **itemptr)
