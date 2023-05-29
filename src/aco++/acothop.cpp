@@ -608,6 +608,7 @@ int main(int argc, char *argv[])
     for (n_try = 0; n_try < max_tries; n_try++)
     {
         init_try(n_try);
+        std::cout<< n_try << " " << seed << " ";
         // printf("%dth try \n", n_try + 1);
         while (!termination_condition())
         {
@@ -640,6 +641,7 @@ int main(int argc, char *argv[])
             iteration++;
         }
         exit_try(n_try);
+        std::cout<<best_in_try[n_try]<< std::endl;
     }
     exit_program();
 
