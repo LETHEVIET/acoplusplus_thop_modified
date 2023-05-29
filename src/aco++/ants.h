@@ -111,6 +111,7 @@ extern double trail_0; /* initial pheromone trail level in ACS  and BWAS */
 extern int node_clustering_flag;
 extern int n_sector;
 extern int cluster_size;
+extern int n_cluster;
 
 /* Pheromone manipulation etc. */
 
@@ -120,6 +121,8 @@ void evaporation(void);
 
 void evaporation_nn_list(void);
 
+void evaporation_nc_list(void);
+
 void global_update_pheromone(ant_struct *a);
 
 void global_update_pheromone_weighted(ant_struct *a, long int weight);
@@ -127,6 +130,8 @@ void global_update_pheromone_weighted(ant_struct *a, long int weight);
 void compute_total_information(void);
 
 void compute_nn_list_total_information(void);
+
+void compute_nc_list_total_information(void);
 
 void update_cluter_total(void);
 

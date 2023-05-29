@@ -61,6 +61,8 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
+#include <map>
+#include <string>
 
 #include "inout.h"
 #include "thop.h"
@@ -87,6 +89,7 @@ std::vector<double> t_cluster;
 int node_clustering_flag;
 int n_sector;
 int cluster_size;
+int n_cluster;
 
 double **pheromone;
 double **total;
@@ -196,6 +199,22 @@ void evaporation_nn_list(void)
     }
 }
 
+void evaporation_nc_list(void){
+
+    TRACE(printf("pheromone evaporation nn_list\n"););
+
+    for (int i = 0; i < instance.n; i++)
+    {
+        for (int cur_cluster = 0; cur_cluster < cluster_chunk[i].size(); cur_cluster++)
+        {
+            for (int j = 0; j < cluster_chunk[i][cur_cluster].size(); j++){
+                int help_city = cluster_chunk[i][cur_cluster][j];
+                pheromone[i][help_city] = (1 - rho) * pheromone[i][help_city];
+            }
+        }
+    }
+}
+
 void global_update_pheromone(ant_struct *a)
 /*
       FUNCTION:      reinforces edges used in ant k's solution
@@ -284,6 +303,25 @@ void compute_nn_list_total_information(void)
                 pheromone[h][i] = pheromone[i][h];
             total[i][h] = pow(pheromone[i][h], alpha) * pow(HEURISTIC(i, h), beta);
             total[h][i] = total[i][h];
+        }
+    }
+}
+
+void compute_nc_list_total_information(void){
+    int h;
+    TRACE(printf("pheromone evaporation nc_list\n"););
+
+    for (int i = 0; i < instance.n; i++)
+    {
+        for (int cur_cluster = 0; cur_cluster < cluster_chunk[i].size(); cur_cluster++)
+        {
+            for (int j = 0; j < cluster_chunk[i][cur_cluster].size(); j++){
+                h = cluster_chunk[i][cur_cluster][j];
+                if (pheromone[i][h] < pheromone[h][i])
+                    pheromone[h][i] = pheromone[i][h];
+                total[i][h] = pow(pheromone[i][h], alpha) * pow(HEURISTIC(i, h), beta);
+                total[h][i] = total[i][h];
+            }
         }
     }
 }
@@ -414,7 +452,7 @@ void create_cluster(void)
             }
         }
 
-        while (nb_visited < instance.n)
+        while (nb_visited < instance.n && cluster_chunk[i].size() < n_cluster)
         {
             while (cluster_chunk[i][cluster_index].size() < cluster_size)
             {
@@ -441,6 +479,37 @@ void create_cluster(void)
     }
 
     // update_cluter_total();
+}
+
+void calculate_q0_entropy(void){
+    
+    std::map<std::string, long int> occurence;
+    
+    occurence.clear();
+    for (int k = 0; k < n_ants; k++){
+        std::string route = "";
+        for (int i = 0; i < ant[k].tour_size; i++){
+            route += std::to_string(ant[k].tour[i]);
+            if (i != ant[k].tour_size - 1){
+                route += '->';
+            }
+        }
+
+        if (occurence.find(route) == occurence.end()){
+            occurence[route] = 0;
+        }
+        occurence[route] += 1;
+    }
+
+    float entropy = 0.f;
+
+    for (const auto &item : occurence){
+        float pi = float(item.second) / n_ants;
+        entropy +=  pi * log2(pi);
+    }
+    entropy *= -1.f;
+
+    std::cout<< occurence.size() << " " << entropy << std::endl;
 }
 
 /****************************************************************
@@ -692,8 +761,8 @@ void node_clustering_move(ant_struct *a, long int phase)
     // select cluster
     double lp = 0;
     std::vector<double> pC;
-    int cluster_size = total_cluster[current_city].size();
-    for (int i = 0; i < cluster_size; i++)
+    int cur_cluster_size = total_cluster[current_city].size();
+    for (int i = 0; i < cur_cluster_size; i++)
     {
         lp = lp + total_cluster[current_city][i];
         pC.push_back(lp);
@@ -702,7 +771,7 @@ void node_clustering_move(ant_struct *a, long int phase)
     int selected_cluster = 0;
     double rnd = ran01(&seed);
     rnd *= lp;
-    while (rnd >= pC[selected_cluster] && selected_cluster < cluster_size - 1)
+    while (rnd >= pC[selected_cluster] && selected_cluster < cur_cluster_size - 1)
         selected_cluster++;
 
     // if (selected_cluster == cluster_size){
