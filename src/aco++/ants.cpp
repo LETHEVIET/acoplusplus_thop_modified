@@ -446,6 +446,10 @@ void create_cluster(void)
             int node = find_closest_node_in_sector(i, n_sector, j);
             if (node != -1)
             {
+                if (cluster_chunk[i][cluster_index].size() >= cluster_size) {
+                    cluster_index++;   
+                    cluster_chunk[i].push_back(cluster);
+                }
                 cluster_chunk[i][cluster_index].push_back(node);
                 nb_visited++;
                 visited[node] = true;
@@ -800,8 +804,12 @@ void node_clustering_move(ant_struct *a, long int phase)
             selected_cluster = 0;
             first = 0;
         }
-        else
+        else if (selected_cluster == cluster_chunk[current_city].size() - 1){
+            choose_best_next(a, phase);
+            return;
+        }else{
             selected_cluster++;
+        }
     }
 
     // select next city
