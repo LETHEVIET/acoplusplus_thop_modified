@@ -562,7 +562,7 @@ void pheromone_trail_update(void)
     {
         if (node_clustering_flag == TRUE)
         {
-            compute_total_information();
+            compute_nn_list_total_information();
         }
         else if (as_flag || eas_flag || ras_flag || mmas_flag || bwas_flag)
         {

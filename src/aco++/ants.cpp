@@ -751,7 +751,8 @@ void node_clustering_move(ant_struct *a, long int phase)
 
     if ((q_0 > 0.0) && (ran01(&seed) < q_0))
     {
-        choose_best_next(a, phase);
+        // choose_best_next(a, phase);
+        neighbour_choose_best_next(a, phase);
         return;
     }
 
