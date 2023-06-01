@@ -6,8 +6,8 @@
 #include "ants.h"
 
 // Hyperparameters
-float min_rho = 0.01;
-float max_rho = 0.99;
+float min_rho = 0.001;
+float max_rho = 0.1;
 bool adaptive_evaporation_flag;
 // float min_q_0 = 0.52;
 // float max_q_0 = 1;
@@ -65,7 +65,8 @@ void update_rho(void)
     min_entropy = -log2(n_ants * 1.0 / total_edge_count);
     max_entropy = -log2(1.0 / total_edge_count);
 
-    // rho = min_rho + rho_diff * (entropy - min_entropy) / (max_entropy - min_entropy);
-    rho = max_rho - rho_diff * (entropy - min_entropy) / (max_entropy - min_entropy);
+    rho = min_rho + rho_diff * (entropy - min_entropy) / (max_entropy - min_entropy);
+    // rho = max_rho - rho_diff * (entropy - min_entropy) / (max_entropy - min_entropy);
     // q_0 = min_q_0 + q_0_diff * (entropy - min_entropy) / (max_entropy - min_entropy);
+    // printf("entropy: %f\n", entropy);
 }

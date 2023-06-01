@@ -28,6 +28,31 @@ int node_clustering_flag;
 int n_cluster;
 int cluster_size;
 int n_sector;
+double delta = 1;
+
+void aaconc_update(void){
+
+    std::vector<bool> in_best_route(instance.n+1, false);
+    long int iteration_best_ant = find_best();
+    for (int i = 0; i < ant[iteration_best_ant].tour_size; i++){
+        in_best_route[ant[iteration_best_ant].tour[i]] = true;
+    }
+    
+    for (int k = 0; k < n_ants; k++){
+        for (int i = 0; i < ant[k].tour_size - 1; i++){
+            long int j = ant[k].tour[i];
+            long int h = ant[k].tour[i + 1];
+
+            if (in_best_route[j] && in_best_route[h]){
+                pheromone[j][h] += delta * best_so_far_ant->fitness / ant[k].fitness;
+                pheromone[h][j] = pheromone[j][h];
+
+                total[h][j] = pow(pheromone[h][j], alpha) * pow(HEURISTIC(h, j), beta);
+                total[j][h] = total[h][j];
+            }
+        }
+    }
+}
 
 void evaporation_nc_list(void){
 
@@ -39,7 +64,33 @@ void evaporation_nc_list(void){
         {
             for (int j = 0; j < cluster_chunk[i][cur_cluster].size(); j++){
                 int help_city = cluster_chunk[i][cur_cluster][j];
-                pheromone[i][help_city] = (1 - rho) * pheromone[i][help_city];
+                pheromone[i][help_city] = (1.0 - rho) * pheromone[i][help_city];
+            }
+        }
+    }
+}
+
+void compute_nc_list_total_information(void)
+/*
+      FUNCTION: calculates heuristic info times pheromone for arcs in nn_list
+      INPUT:    none
+      OUTPUT:   none
+ */
+{
+    long int i, j, h;
+
+    TRACE(printf("compute total information nn_list\n"););
+
+     for (int i = 0; i < instance.n; i++)
+    {
+        for (int cur_cluster = 0; cur_cluster < cluster_chunk[i].size(); cur_cluster++)
+        {
+            for (int j = 0; j < cluster_chunk[i][cur_cluster].size(); j++){
+                h = cluster_chunk[i][cur_cluster][j];
+                if (pheromone[i][h] < pheromone[h][i])
+                    pheromone[h][i] = pheromone[i][h];
+                total[i][h] = pow(pheromone[i][h], alpha) * pow(HEURISTIC(i, h), beta);
+                total[h][i] = total[i][h];
             }
         }
     }
@@ -193,33 +244,51 @@ void node_clustering_move(ant_struct *a, long int phase)
     }
 
     int first = 1;
-    long int current_city = a->tour[phase - 1];
+    int i = 0;
+    double rnd;
 
+    long int current_city = a->tour[phase - 1];
+    int curr_cluster_size = total_cluster[current_city].size();
+
+    std::vector<double> prob_clusters;
+    double sum_prob_cluster;
+    double partial_cluster_sum;
+    int selected_cluster;
+    
+    std::vector<long int> candidates;
+    std::vector<double> prob_cities;
+    double sum_prob_cities ;
+    int selected_city;
+    double partial_cities_sum;
+    
     // select cluster
-    double lp = 0;
-    std::vector<double> pC;
-    int cluster_size = total_cluster[current_city].size();
-    for (int i = 0; i < cluster_size; i++)
-    {
-        lp = lp + total_cluster[current_city][i];
-        pC.push_back(lp);
+    sum_prob_cluster = 0.0f;
+    for (int j = 0; j < curr_cluster_size; j++){
+        prob_clusters.push_back(total_cluster[current_city][j]);
+        sum_prob_cluster += prob_clusters[j];
     }
 
-    int selected_cluster = 0;
-    double rnd = ran01(&seed);
-    rnd *= lp;
-    while (rnd >= pC[selected_cluster] && selected_cluster < cluster_size - 1)
+    if (sum_prob_cluster == 0.0){
+        std::cout<<iteration<<" " << phase << std::endl;
+    }
+
+    selected_cluster = 0;
+    rnd = ran01(&seed);
+    rnd *= sum_prob_cluster;
+    partial_cluster_sum = prob_clusters[selected_cluster];
+    while (partial_cluster_sum <= rnd){
         selected_cluster++;
+        partial_cluster_sum += prob_clusters[selected_cluster];
+    }
 
-    // if (selected_cluster == cluster_size){
-    //     choose_best_next(a, phase);
-    //     return;
-    // }
+    if (selected_cluster == curr_cluster_size){
+        neighbour_choose_best_next(a, phase);
+        return;
+    }
 
-    std::vector<long int> candidates;
     while (true)
     {
-        for (int i = 0; i < cluster_chunk[current_city][selected_cluster].size(); i++)
+        for (i = 0; i < cluster_chunk[current_city][selected_cluster].size(); i++)
         {
             long int city = cluster_chunk[current_city][selected_cluster][i];
             if (a->visited[city])
@@ -237,7 +306,7 @@ void node_clustering_move(ant_struct *a, long int phase)
             first = 0;
         }
         else if (selected_cluster == cluster_chunk[current_city].size() - 1){
-            choose_best_next(a, phase);
+            neighbour_choose_best_next(a, phase);
             return;
         }else{
             selected_cluster++;
@@ -245,24 +314,26 @@ void node_clustering_move(ant_struct *a, long int phase)
     }
 
     // select next city
-    std::vector<double> total_candidates;
-    lp = 0;
-    for (int i = 0; i < candidates.size(); i++)
+    sum_prob_cities = 0;
+    for (i = 0; i < candidates.size(); i++)
     {
-        lp = lp + total[current_city][candidates[i]];
-        total_candidates.push_back(lp);
+        prob_cities.push_back(total[current_city][candidates[i]]);
+        sum_prob_cities += prob_cities[i];
     }
 
-    int selected_city = 0;
+    selected_city = 0;
     rnd = ran01(&seed);
-    rnd *= lp;
-    while (total_candidates[selected_city] <= rnd && selected_city < candidates.size() - 1)
+    rnd *= sum_prob_cities;
+    partial_cities_sum = prob_cities[selected_city];
+    while (partial_cities_sum <= rnd){
         selected_city++;
+        partial_cities_sum += prob_cities[selected_city];
+    }
 
-    // if (selected_city == candidates.size()){
-    //     neighbour_choose_best_next(a, phase);
-    //     return;
-    // }
+    if (selected_city == candidates.size()){
+        neighbour_choose_best_next(a, phase);
+        return;
+    }
 
     a->tour[phase] = candidates[selected_city];
     a->visited[candidates[selected_city]] = TRUE;

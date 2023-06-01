@@ -537,7 +537,9 @@ void pheromone_trail_update(void)
     }
 
     /* Next, apply the pheromone deposit for the various ACO algorithms */
-    if (as_flag)
+    if (node_clustering_flag)
+        aaconc_update();
+    else if (as_flag)
         as_update();
     else if (eas_flag)
         eas_update();
@@ -563,7 +565,7 @@ void pheromone_trail_update(void)
     {
         if (node_clustering_flag == TRUE)
         {
-            compute_nn_list_total_information();
+            compute_nc_list_total_information();
         }
         else if (as_flag || eas_flag || ras_flag || mmas_flag || bwas_flag)
         {

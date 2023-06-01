@@ -124,10 +124,6 @@ void compute_total_information(void);
 
 void compute_nn_list_total_information(void);
 
-void update_cluter_total(void);
-
-void create_cluster(void);
-
 /* Ants' solution construction */
 
 void ant_empty_memory(ant_struct *a);
