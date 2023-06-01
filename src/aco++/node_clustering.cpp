@@ -110,8 +110,8 @@ void update_cluter_total(void)
             double h = 0;
             for (int v = 0; v < cluster_chunk[i][c].size(); v++)
             {
-                p += pheromone[i][v];
-                h += pheromone[i][v];
+                p += pheromone[i][cluster_chunk[i][c][v]];
+                h += HEURISTIC(i, cluster_chunk[i][c][v]);
             }
 
             p /= cluster_chunk[i][c].size();
