@@ -349,7 +349,7 @@ void choose_best_next(ant_struct *a, long int phase)
             }
         }
     }
-    DEBUG(assert(0 <= next_city && next_city < n););
+    DEBUG(assert(0 <= next_city && next_city < instance.n););
     DEBUG(assert(value_best > 0.0);)
     DEBUG(assert(a->visited[next_city] == FALSE);)
     a->tour[phase] = next_city;
@@ -380,7 +380,7 @@ void neighbour_choose_best_next(ant_struct *a, long int phase)
             ; /* city already visited, do nothing */
         else
         {
-            help = total[current_city][help_city];
+            help = make_ant_weight(current_city, help_city);
             if (help > value_best)
             {
                 value_best = help;
@@ -393,7 +393,7 @@ void neighbour_choose_best_next(ant_struct *a, long int phase)
         choose_best_next(a, phase);
     else
     {
-        DEBUG(assert(0 <= next_city && next_city < n);)
+        DEBUG(assert(0 <= next_city && next_city < instance.n);)
         DEBUG(assert(value_best > 0.0);)
         DEBUG(assert(a->visited[next_city] == FALSE);)
         a->tour[phase] = next_city;
@@ -428,7 +428,7 @@ void choose_closest_next(ant_struct *a, long int phase)
             }
         }
     }
-    DEBUG(assert(0 <= next_city && next_city < n););
+    DEBUG(assert(0 <= next_city && next_city < instance.n););
     a->tour[phase] = next_city;
     a->visited[next_city] = TRUE;
 }
