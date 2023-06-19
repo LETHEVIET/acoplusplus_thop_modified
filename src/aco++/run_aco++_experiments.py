@@ -235,7 +235,7 @@ if __name__ == "__main__":
         "02",
         "03",
     ]
-    number_of_runs = 30
+    number_of_runs = 2
     if debug_log:
         number_of_runs = 3
 
