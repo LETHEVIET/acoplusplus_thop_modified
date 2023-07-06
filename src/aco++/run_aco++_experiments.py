@@ -213,10 +213,10 @@ if __name__ == "__main__":
     assert exist_ok or not (os.path.isdir(sol_dir) and len(os.listdir(sol_dir)) > 0)
 
     tsp_base = [
-        "eil51",
-        "pr107",
+        # "eil51",
+        # "pr107",
         "a280",
-        "dsj1000",
+        # "dsj1000",
     ]
     number_of_items_per_city = [
         "01",
@@ -239,7 +239,8 @@ if __name__ == "__main__":
         "02",
         "03",
     ]
-    number_of_runs = 30
+    # number_of_runs = 30
+    number_of_runs = 3
     if debug_log:
         number_of_runs = 3
 
