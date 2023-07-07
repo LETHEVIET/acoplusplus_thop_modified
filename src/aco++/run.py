@@ -617,7 +617,7 @@ def build():
     if silent <= 0:
         print(result.stdout.decode())
 
-    command = ["cmake", "--build", f"{acopp_dir}/build"]
+    command = ["cmake", "--build", f"{acopp_dir}/build", "-j", "2"]
     if silent <= 0:
         print("$ " + " ".join(command))
     result = run_command(command)
